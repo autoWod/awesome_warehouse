@@ -1,0 +1,19 @@
+{
+  "name": "awesome_warehouse",
+  "version": "1.0.0",
+  "author": "lax",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "lib": "webpack"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "babel-eslint": "^10.1.0",
+    "eslint": "^7.9.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^3.1.1",
+    "prettier": "^1.19.1"
+  }
+}
