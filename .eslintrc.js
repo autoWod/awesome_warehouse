@@ -4,7 +4,7 @@
  * @Author: lax
  * @Date: 2020-10-10 17:07:52
  * @LastEditors: lax
- * @LastEditTime: 2021-06-17 19:36:16
+ * @LastEditTime: 2021-06-20 11:56:17
  */
 module.exports = {
 	root: true,
@@ -39,7 +39,10 @@ module.exports = {
 	globals: {
 		logger: true,
 		XmlSerializer: true,
-		base64_encode: true
+		base64_encode: true,
+		$: true,
+		GM_addStyle: true,
+		GM_getResourceText: true
 	},
 	overrides: [
 		{
