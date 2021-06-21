@@ -4,7 +4,7 @@
  * @Author: lax
  * @Date: 2020-10-10 17:07:52
  * @LastEditors: lax
- * @LastEditTime: 2021-06-20 11:56:17
+ * @LastEditTime: 2021-06-22 00:19:20
  */
 module.exports = {
 	root: true,
@@ -42,7 +42,9 @@ module.exports = {
 		base64_encode: true,
 		$: true,
 		GM_addStyle: true,
-		GM_getResourceText: true
+		GM_getResourceText: true,
+		ITEM_POSITION: true,
+		SelectBox: true
 	},
 	overrides: [
 		{

@@ -4,8 +4,8 @@
  * @Author: lax
  * @Date: 2021-06-15 10:50:14
  * @LastEditors: lax
- * @LastEditTime: 2021-06-22 01:19:27
- * @FilePath: \awesome_warehouse\src\index.js
+ * @LastEditTime: 2021-06-22 00:30:22
+ * @FilePath: \awesome_warehouse\test\index.js
  */
 // ==UserScript==
 // @name         awesome_warehouse
@@ -19,7 +19,7 @@
 // @require      https://code.jquery.com/jquery-3.6.0.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js
 // @resource     select2-css https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css
-// @require		 https://wod-static.oss-cn-hangzhou.aliyuncs.com/wod_plugin_base/wodBase.js
+// @require      file://D:\project\person\wod\wod_plugin_base\src\index.js
 // ==/UserScript==
 
 (function() {
