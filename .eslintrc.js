@@ -4,7 +4,7 @@
  * @Author: lax
  * @Date: 2020-10-10 17:07:52
  * @LastEditors: lax
- * @LastEditTime: 2021-06-22 00:19:20
+ * @LastEditTime: 2021-07-01 20:58:50
  */
 module.exports = {
 	root: true,
@@ -33,6 +33,7 @@ module.exports = {
 		"no-use-before-define": "off",
 		"no-else-return": "off",
 		"no-alert": "off",
+		"max-classes-per-file": "off",
 		camelcase: "off",
 		strict: "off"
 	},

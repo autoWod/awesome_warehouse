@@ -4,7 +4,7 @@
  * @Author: lax
  * @Date: 2021-06-15 10:50:14
  * @LastEditors: lax
- * @LastEditTime: 2021-06-22 01:19:27
+ * @LastEditTime: 2021-07-04 14:51:22
  * @FilePath: \awesome_warehouse\src\index.js
  */
 // ==UserScript==
@@ -27,19 +27,30 @@
 
 	GM_addStyle(GM_getResourceText("select2-css"));
 
-	const selectBox = new SelectBox();
+	const selectBox = WOD.SelectBox.getOnt();
+
+	const ITEM_POSITION = {
+		// 仓库
+		LOCAL: 1,
+		// 团队仓库
+		PUBLIC: 2,
+		// 宝库
+		GROUP: 3,
+		// 储藏室
+		PRIVATE: 4
+	};
 
 	// storage
 	const lib = window.localStorage;
 
 	// 应用改动
-	const post = document.querySelector("input[name=ok]");
+	const post = $("input[name=ok]");
 
 	// 位置口
-	const itemFrom = document.querySelector("input[name*=doEquipItem]");
+	const itemFrom = $("input[name*=doEquipItem]");
 
 	// 位置选择框
-	const itemSelect = document.querySelector("select[name=dummy]");
+	const itemSelect = $("select[name=dummy]");
 
 	// 执行状态key
 	const STATUS = "wod_awesome_warehouse_status";
@@ -61,31 +72,40 @@
 			this.controller = this._initController();
 			// 耗材入仓
 			this.createAutoFunWithItemReturnToPosition(
+				"团队",
 				"耗材入仓",
+				"将耗材放入团队仓库",
 				AUTO_SAVE_CONSUMABLE,
 				ITEM_POSITION.PUBLIC,
-				() => {
+				select => {
+					selectBox.setGroup(select ? 0 : 2);
 					this.autoSelectByConsumable(AUTO_SAVE_CONSUMABLE);
-				}
-			);
-
-			// 全部入仓
-			this.createAutoFunWithItemReturnToPosition(
-				"全部入仓",
-				AUTO_SAVE_ALL,
-				ITEM_POSITION.PUBLIC,
-				() => {
-					this.autoSelectByAll(AUTO_SAVE_ALL);
 				}
 			);
 
 			// 团物归仓
 			this.createAutoFunWithItemReturnToPosition(
+				"耗材",
 				"团物归仓",
+				"将团队物品放回宝库",
 				GROUP_BACK,
 				ITEM_POSITION.GROUP,
-				() => {
+				select => {
+					selectBox.setConsumable(select ? 0 : 2);
 					this.autoSelectByGroup(GROUP_BACK);
+				}
+			);
+
+			// 全部入仓;
+			this.createAutoFunWithItemReturnToPosition(
+				null,
+				"全部入仓",
+				"将非团队物品放入团队仓库",
+				AUTO_SAVE_ALL,
+				ITEM_POSITION.PUBLIC,
+				() => {
+					selectBox.setGroup(2);
+					this.autoSelectByAll(AUTO_SAVE_ALL);
 				}
 			);
 
@@ -94,23 +114,32 @@
 		}
 
 		_initController() {
-			const searchContainer = document.querySelector(".search_container");
-			const controller = document.createElement("div");
-			controller.setAttribute("id", "awesome");
-			controller.style.width = "100%";
-			controller.style.border = "1px solid #FFD306";
-			controller.style["border-collapse"] = "separate";
-			controller.style.display = "flex";
-			controller.style.padding = "10px";
-			// controller.style["justify-content"] = "space-around";
-			// controller.style["flex-direction"] = "column";
-			searchContainer.parentNode.insertBefore(
-				controller,
-				searchContainer.nextElementSibling
-			);
+			GM_addStyle(`
+				#awesome{
+					width: 100%;
+					border: 1px solid #FFD306;
+					border-collapse: separate;
+					display: flex;
+					padding: 10px;
+				}
+			`);
+
+			const searchContainer = $(".search_container");
+			const controller = $(`<div id="awesome"></div>`);
+			searchContainer.after(controller);
 
 			this.setSelectAutoOpen();
+			// this.addSelectCanCancel();
 			return controller;
+		}
+
+		addSelectCanCancel() {
+			selectBox.selects.map(select => {
+				const selectView = select[0].nextElementSibling;
+				const i = $("<div/>");
+				i.val("x");
+				$(selectView).append(i);
+			});
 		}
 
 		setSelectAutoOpen() {
@@ -124,48 +153,40 @@
 				let dropSelected = false;
 				// 计时器
 				let tick;
-
+				// 搜索栏是否使用
+				let used = false;
 				const selectView = select[0].nextElementSibling;
-				selectView.addEventListener(
-					"mouseenter",
-					e => {
-						startTimeStamp = e.timeStamp;
-						tick = setInterval(() => {
-							if (new Date().getTime() - startTimeStamp >= 100)
-								selectShow = true;
-							if (selectShow) {
-								select.select2("open");
+				selectView.addEventListener("mouseenter", e => {
+					if (used) return;
+					startTimeStamp = e.timeStamp;
+					tick = setInterval(() => {
+						if (new Date().getTime() - startTimeStamp >= 100) selectShow = true;
+						if (selectShow) {
+							window.clearInterval(tick);
+							select.select2("open");
 
-								const dropdown = $(".select2-dropdown")[0];
+							const dropdown = $(".select2-dropdown")[0];
 
-								dropdown.addEventListener("mouseenter", () => {
-									dropSelected = true;
-								});
+							dropdown.addEventListener("mouseenter", () => {
+								dropSelected = true;
+							});
 
-								dropdown.addEventListener("mouseleave", () => {
-									dropSelected = false;
-									setTimeout(() => {
-										if (!selected) select.select2("close");
-									}, 100);
-								});
-
-								window.clearInterval(tick);
-							}
-						}, 100);
-					},
-					false
-				);
-				selectView.addEventListener(
-					"mouseleave",
-					() => {
-						selected = false;
-						window.clearInterval(tick);
-						setTimeout(() => {
-							if (!dropSelected) select.select2("close");
-						}, 100);
-					},
-					false
-				);
+							dropdown.addEventListener("mouseleave", () => {
+								dropSelected = false;
+								setTimeout(() => {
+									if (!selected) select.select2("close");
+								}, 100);
+							});
+						}
+					}, 100);
+				});
+				selectView.addEventListener("mouseleave", () => {
+					selected = false;
+					window.clearInterval(tick);
+					setTimeout(() => {
+						if (!dropSelected) select.select2("close");
+					}, 100);
+				});
 			});
 		}
 
@@ -173,33 +194,34 @@
 			const status = lib.getItem(STATUS);
 			status &&
 				JSON.parse(status).map(each => {
-					if (lib.getItem(each)) this.funcs[each]();
+					if (lib.getItem(each) && this.funcs[each] !== undefined)
+						this.funcs[each]();
 				});
 		}
 
-		createAutoFunWithItemReturnToPosition(name, flag, position, callback) {
-			this.createButton(name, flag, callback);
+		createAutoFunWithItemReturnToPosition(
+			check,
+			bt,
+			desc,
+			flag,
+			position,
+			callback
+		) {
+			this.add(new PowerButton(check, bt, desc, flag, callback));
 			this.addReturnFun(flag, position);
 		}
 
-		createButton(name, flag, callback) {
-			const button = document.createElement("a");
-			button.setAttribute("class", "button");
-			button.href = "#";
-			button.innerHTML = name;
-			this.controller.appendChild(button);
-			button.addEventListener("click", callback);
-			update(flag);
+		add(box) {
+			this.controller.append(box.element);
 		}
 
 		addReturnFun(flag, position) {
 			this.funcs[flag] = () => {
-				if (itemFrom && Number(lib.getItem(flag))) {
-					itemFrom.click();
-					itemSelect.options[position].selected = true;
-					const e = document.createEvent("HTMLEvents");
-					e.initEvent("change", false, true);
-					itemSelect.dispatchEvent(e);
+				if (itemFrom[0] && Number(lib.getItem(flag))) {
+					itemFrom[0].click();
+					const option = itemSelect[0].options[position];
+					option.selected = true;
+					this.selectActive(itemSelect[0]);
 					lib.setItem(flag, 0);
 					post.click();
 				}
@@ -207,7 +229,14 @@
 			};
 		}
 
+		selectActive(ele) {
+			const e = document.createEvent("HTMLEvents");
+			e.initEvent("change", false, true);
+			ele.dispatchEvent(e);
+		}
+
 		autoSelectBy(select, flag) {
+			selectBox.clear();
 			select();
 			lib.setItem(flag, 1);
 			selectBox.search();
@@ -232,6 +261,53 @@
 		}
 	}
 
+	class PowerButton {
+		constructor(check, name, desc, flag, callback) {
+			this.select = false;
+			this.flag = flag;
+			update(flag);
+			this.element = this.createCheckButton(check, name, desc, callback);
+		}
+
+		createButton(name, desc, callback) {
+			const button = $(`<a/>`);
+			button.attr("href", "#");
+			desc && button.attr("title", desc);
+			button.addClass("button");
+			button.text(name);
+			button.on("click", () => {
+				callback(this.select);
+			});
+			return button;
+		}
+
+		createCheckButton(checkName, btName, desc, callback) {
+			const self = this;
+			const box = $(`<div/>`);
+			box.css("border", "1px solid #FFD306");
+			box.css("padding", "10px");
+			box.css("display", "flex");
+			if (checkName) {
+				const label = $("<label/>");
+				const input = $("<input/>");
+				input.attr("type", "checkbox");
+				input.attr("name", "item_3hero_level_enabled");
+				label.text(checkName);
+				input.on("click", function() {
+					if (this.checked === true) {
+						self.select = true;
+					} else {
+						self.select = false;
+					}
+				});
+				label.append(input);
+				box.append(label);
+			}
+			const button = this.createButton(btName, desc, callback);
+			box.append(button);
+			return box;
+		}
+	}
 	new Controller();
 
 	function update(key) {
